@@ -1,0 +1,153 @@
+
+?*grades* = (create$ NEV NACQ CRTACQ ACQ)
+                      1   2      3    4
+?*affect* = (create$ POS NEG NEU)
+                      1   2   3
+?**actions* = (create$ NEXT CONTINUE HINT RELAX)
+                        1        2     3    4
+
+
+RULES:
+IF
+	AVERAGE GRADE (AG=ACQ/NACQ/CRTACQ)
+	NUMBER OF GRADES (INT <=>THRESHOLD)
+	EMOTION (POS/NEG/NEU)
+	PREVIOUS-ACTIONS (PA=CONTINUE/NEXT/HINT/RELAX)
+THEN
+	CONTINUE/NEXT/HINT/RELAX
+
+	
+	
+	
+---------------------- CONTINUE ----------------------
+1. <THRESHOLD_COMP   =>   CONTINUE
+2. CRTACQ   >=THRESHOLD_COMP   <THRESHOLD_OPT   POS/NEU   =>  CONTINUE
+3. CRTACQ   >=THRESHOLD_COMP   NEG   EXISTS(RELAX)   EXISTS(HINT)   =>  CONTINUE
+4. NACQ   >=THRESHOLD_COMP   POS/NEU   => CONTINUE
+5. NACQ   >=THRESHOLD_COMP   NEG   EXISTS(RELAX)   EXISTS(HINT)   =>  CONTINUE
+
+
+
+------------------------NEXT----------------------------
+1. ACQ   >=THRESHOLD_COMP   POS/NEU   =>   NEXT
+2. ACQ   >=THRESHOLD_COMP   NEG   ALL(RELAX)   =>   NEXT
+3. CRTACQ   >=THRESHOLD_OPT   POS/NEU   =>   NEXT
+4. CRTACQ   >=THRESHOLD_OPT   NEG   ALL(RELAX)   =>   NEXT
+
+
+
+
+----------------------RELAX------------------------------
+1. ACQ   >=THRESHOLD_COMP   NEG   ~ALL(RELAX)   =>   RELAX
+2. CRTACQ   >=THRESHOLD_OPT   NEG   ~ALL(RELAX)   =>   RELAX
+3. CRTACQ  >=THRESHOLD_COMP   NEG   ~EXISTS(RELAX)   =>   RELAX
+4. NACQ  >=THRESHOLD_COMP   ~EXISTS(RELAX)   =>   RELAX
+
+
+
+-------------------------HINT--------------------------
+1. CRTACQ   >=THRESHOLD_COMP   NEG   ~EXISTS(HINT)   =>   HINT
+2. NACQ   >=THRESHOLD_COMP   ~EXISTS(HINT)   =>   HINT
+
+
+
+
+
+
+
+
+
+
+TEST CASES:
+
+
+
+===============================================   9 iulie   ====================================================
+
+
+
+grades: NACQ NACQ NACQ ACQ NACQ NACQ NACQ NACQ NACQ NACQ NACQ NACQ 
+gradesNo 12
+avggrade:NACQ 
+previous actions: CONTINUE CONTINUE CONTINUE 
+emotion: POS
+--------[RELAX 4] HAI SA-TI SPUN O POVESTE SI MAI EXERSAM PE URMA---------
+--------[HINT 2] HAI SA-TI MAI ARAT O DATA CUM SE FACE:---------
+--------[CONTINUE 4] MAI INCEARCA---------
+=> RELAX 4
+
+
+
+grades: CRTACQ NACQ NACQ ACQ NACQ CRTACQ NACQ NACQ NACQ NACQ ACQ NACQ ACQ ACQ ACQ ACQ ACQ NACQ 
+gradesNo 18
+avggrade:NACQ 
+previous actions: CONTINUE CONTINUE CONTINUE CONTINUE CONTINUE 
+emotion: NEG
+=> NOTHING
+
+
+
+
+
+
+
+grades: ACQ ACQ CRTACQ ACQ ACQ NACQ NACQ NACQ NACQ ACQ ACQ CRTACQ ACQ ACQ ACQ ACQ ACQ ACQ ACQ NACQ ACQ 
+gradesNo 21
+avggrade:CRTACQ 
+emotion: NEG
+=> NOTHING
+
+
+
+
+===========================================   8 iulie   ======================================================
+
+
+
+
+grades: CRTACQ ACQ ACQ 
+gradesNo 3
+avggrade:CRTACQ 
+
+JOPTIONPANE: CONTINUE 2
+SYSTEM.OUT: [CONTINUE 2] [CONTINUE 1]
+
+
+
+
+grades: ACQ ACQ ACQ NACQ NACQ ACQ 
+gradesNo 6
+avggrade:CRTACQ 
+watch
+--------[CONTINUE 2] HAI SA MAI SCRIEM, SE POATE SI MAI BINE---------
+------------[CONTINUE 1] SA MAI SCRIEM NISTE LITERE, AI SCRIS CAM PUTINE---------------
+JOPTIONPANE: [CONTINUE2]
+
+
+
+
+
+
+grades: ACQ ACQ ACQ NACQ CRTACQ CRTACQ ACQ CRTACQ ACQ CRTACQ CRTACQ NACQ 
+gradesNo 12
+avggrade:CRTACQ 
+emotion: NEG
+=>
+NOTHING
+
+
+
+grades: CRTACQ ACQ CRTACQ CRTACQ ACQ NACQ CRTACQ CRTACQ CRTACQ CRTACQ CRTACQ NACQ CRTACQ CRTACQ CRTACQ CRTACQ CRTACQ NACQ 
+gradesNo 18
+avggrade:NACQ 
+emotion: POS
+=>
+NOTHING
+
+
+grades: NACQ NACQ NACQ ACQ CRTACQ ACQ ACQ NACQ CRTACQ CRTACQ ACQ ACQ ACQ CRTACQ ACQ 
+gradesNo 15
+avggrade:CRTACQ 
+emotion: NEG
+=>
+NOTHING

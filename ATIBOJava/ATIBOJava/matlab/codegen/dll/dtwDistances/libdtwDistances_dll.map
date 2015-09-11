@@ -1,0 +1,8 @@
+DLL {
+	global:
+		dtwDistances;
+		dtwDistances_initialize;
+		dtwDistances_terminate;
+	local:
+		*;
+};
