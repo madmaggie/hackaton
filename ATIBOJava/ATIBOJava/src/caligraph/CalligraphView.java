@@ -12,6 +12,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
@@ -25,6 +26,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.Timer;
+import javax.swing.border.Border;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
 
 import studentmodel.Student;
@@ -66,7 +68,6 @@ public class CalligraphView extends JFrame implements ActionListener {
 	//public final static String[] calificative = new String[]{"Caracter insuficient achizitionat", "Caracter in curs de achizitionare", "Caracter achizitionat"};
 	public final static String[] tipCaiet = new String[] {"Tip 1", "Tip 2", "Dictando", "Matematica"};
 	public final static Integer[] grosimeStilou = new Integer[] {1,2,3,4,5};
-	public final static int drawingRegionsNo = 3;
 	
 	
 	// Drawing area
@@ -74,32 +75,44 @@ public class CalligraphView extends JFrame implements ActionListener {
 	private CalligraphComputations computations;
 	private VisualTutor tutor;
 	private ATIBOView atiboView;
-	//private String studentName;
 	private Student student;
 	
 	private String filename;
 	
-	private JLabel tipCaietLabel;
-	private JComboBox<String> tipCaietCombo;
-	private JLabel grosimeStilouLabel;
-	private JComboBox<Integer> grosimeStilouCombo;
 	private JButton nextButton;
 	private JToggleButton eraseButton;
+	private Paper topicPaper;
 	
-	private JLabel topicLabel;
 	private int topicIndex;
 	
 	private JColorChooser penColor;
 	
 	private Timer timer;
 	
+	private int drawingRegionsX;
+	private int drawingRegionsY;
+	
+	Dimension screenSize, paperSize;
+	
 	
 	public CalligraphView(ATIBOView atiboView) {
 		computations = new CalligraphComputations();
-		paperView = new Paper[drawingRegionsNo];
 		tutor = new VisualTutor();
-		filename = "";
+		//filename = "";
 		this.atiboView = atiboView;
+		penColor = new JColorChooser(Color.BLUE);
+
+		// Retrieve the size of the screen
+		screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+		System.out.println("[CalligraphView] screensize: " + screenSize.getWidth() + "," + screenSize.getHeight());
+		// Size of the box where a letter should be written
+		paperSize = new Dimension((int)(5*Symbol.DEFAULT_WIDTH), (int)(4*Symbol.DEFAULT_HEIGHT));
+		
+		drawingRegionsX = (int)Math.floor((screenSize.getWidth()-tutor.getWidth())/paperSize.getWidth());
+		drawingRegionsY = (int)Math.floor(screenSize.getHeight()/paperSize.getHeight());
+		paperView = new Paper[drawingRegionsX*drawingRegionsY];
+		System.out.println("[CalligraphView] drawingRegionsX="+drawingRegionsX+" drawingRegionsY="+drawingRegionsY);
 		
 	    setLocation(0, 0);
 		setTitle("ATIBO");
@@ -107,188 +120,116 @@ public class CalligraphView extends JFrame implements ActionListener {
 		setIconImage(new ImageIcon("img/atibo.jpg").getImage());
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		setResizable(false);
 		build();
 		pack();
 		setVisible(true);		
 	}
 	
 	private void build() {
-		Font biggerFont = new Font("Serif", Font.BOLD, 20);		
-		tipCaietLabel = new JLabel("Tip de caiet: ");
-		tipCaietLabel.setFont(biggerFont);
-		tipCaietCombo = new JComboBox<String>(tipCaiet);
-		tipCaietCombo.setFont(biggerFont);
-		grosimeStilouLabel = new JLabel("Grosime stilou:");
-		grosimeStilouLabel.setFont(biggerFont);
-		grosimeStilouCombo = new JComboBox<Integer>(grosimeStilou);
-		grosimeStilouCombo.setSelectedIndex(2);
-		grosimeStilouCombo.setFont(biggerFont);
-				
+		//Font biggerFont = new Font("Serif", Font.BOLD, 20);		
+					
 		nextButton = new JButton();
 		nextButton.setIcon(new ImageIcon(
 				new ImageIcon("./img/nextButton.png").getImage().getScaledInstance(50, 50,  java.awt.Image.SCALE_SMOOTH)));
 		nextButton.addActionListener(this);
-		nextButton.setFont(biggerFont);
 		
-		eraseButton = new JToggleButton("Sterge");
-		//eraseButton.addActionListener(this);
-		eraseButton.setFont(biggerFont);
+		eraseButton = new JToggleButton();
+		eraseButton.setIcon(new ImageIcon(
+				new ImageIcon("./img/eraser.png").getImage().getScaledInstance(50, 50,  java.awt.Image.SCALE_SMOOTH)));
 		
-		topicLabel = new JLabel(simboluri[topicIndex]);
-		topicLabel.setFont(new Font("Serif", Font.BOLD, 30));
-		
-		
-		/************************** Add pen color palette *********************/
-		
-		penColor = new JColorChooser(Color.BLUE);
-		
-		penColor.setPreviewPanel(new JPanel());
-		// Retrieve the current set of panels
-		AbstractColorChooserPanel[] oldPanels = penColor.getChooserPanels();
-
-		// Remove panels
-		for (int i=0; i<oldPanels.length; i++) {
-		    String clsName = oldPanels[i].getClass().getName();
-		    if (clsName.equals("javax.swing.colorchooser.DefaultSwatchChooserPanel")) {
-		    	continue;
-		    }
-		    else
-		    	penColor.removeChooserPanel(oldPanels[i]);
-		}
-		
+				
 		/* *******   title   ************/
 		
+		topicPaper = new Paper(this, null, paperSize, 0, 3);
+		if (filename != null && !filename.isEmpty())
+			topicPaper.drawCharacter(filename);
+		
+		System.out.println("[CalligraphView] topicPaper width = " + topicPaper.getWidth() +
+							" topicPaper height = " + topicPaper.getHeight());
+		
 		JPanel titlePanel = new JPanel();
-		titlePanel.add(topicLabel);
+		titlePanel.add(topicPaper);
+		titlePanel.setBorder(BorderFactory.createBevelBorder(0));
+
+
+		/* *******   tutor   ************/
+		
+		JPanel tutorPanel = new JPanel();
+		tutorPanel.add(tutor);
+
 
 		/* *******   settings   ************/
 		
 		JPanel settingsPanel = new JPanel();
-		//settingsPanel.add(penColor);
-		//settingsPanel.add(grosimeStilouLabel);
-		//settingsPanel.add(grosimeStilouCombo);
 		settingsPanel.add(eraseButton);
-
-		/* *******   tutor   ************/
+		settingsPanel.add(nextButton);
 		
-		//JPanel tutorPanel = new JPanel();
-		//tutorPanel.setBackground(Color.GREEN);
-		//tutorPanel.add(tutor);
-		//tutorPanel.add(new JLabel(new ImageIcon(tutor.getImage().getScaledInstance(100, 100,  java.awt.Image.SCALE_SMOOTH))));
-		//tutorPanel.setPreferredSize(new Dimension(400,450));
-
-		/* *******   next   ************/
 		
-		JPanel nextPanel = new JPanel();
-		nextPanel.add(nextButton);
+		/* *******   up (title, tutor, settings)   ************/
 
-		/* *******   paper   ************/
-		
-		// Retrieve the size of the screen and set the size of the application window to fill the entire screen
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		screenSize.setSize(screenSize.getWidth(), screenSize.getHeight()-50);
+		JPanel leftPanel = new JPanel();
+		leftPanel.setLayout(new BorderLayout());
+		leftPanel.add(titlePanel, BorderLayout.NORTH);
+		leftPanel.add(tutorPanel, BorderLayout.CENTER);
+		leftPanel.add(settingsPanel, BorderLayout.SOUTH);
+		//upPanel.setPreferredSize(new Dimension((int)(screenSize.width/2),100));
 
+
+		/* *******   paper   ************/		
 		
-		// Add the drawing surface to the pane
+		// Add the drawing surfaces to the pane
 		JPanel paperPanel = new JPanel();
-		paperPanel.setBackground(Color.WHITE);
+		//paperPanel.setBackground(Color.WHITE);
 		GroupLayout groupLayout = new GroupLayout(paperPanel);
 		paperPanel.setLayout(groupLayout);
 		groupLayout.setAutoCreateContainerGaps(true);
 		groupLayout.setAutoCreateGaps(true);
-		SequentialGroup horGroup = groupLayout.createSequentialGroup();
-		ParallelGroup verGroup = groupLayout.createParallelGroup();
-		for (int i=0; i<drawingRegionsNo; i++) {
-			System.out.println("[CalligraphView] creez paper " + i);
-			Symbol newSymbol = new Symbol();
-			newSymbol.setName(simboluri[topicIndex]);
-			Dimension paperSize = new Dimension((int)(10*newSymbol.getGridWidth()), (int)(4*newSymbol.getGridHeight()));
-			paperView[i] = new Paper(this, newSymbol, paperSize, 0, 3); // default: caiet tip 1, pen thick = 3
-			paperView[i].setPreferredSize(paperSize);
-			horGroup.addComponent(paperView[i]);
-			verGroup.addComponent(paperView[i]);
+		SequentialGroup horSeqGroup = groupLayout.createSequentialGroup();
+		SequentialGroup verSeqGroup = groupLayout.createSequentialGroup();
+		
+		
+		for (int i=0; i<drawingRegionsX; i++) {
+			ParallelGroup horParGroup = groupLayout.createParallelGroup();
+			for (int j=0; j<drawingRegionsY; j++) {
+				Symbol newSymbol = new Symbol();
+				newSymbol.setName(simboluri[topicIndex]);
+				paperView[drawingRegionsY*i+j] = new Paper(this, newSymbol, paperSize, 0, 3); // default: caiet tip 1, pen thick = 3
+				//paperView[drawingRegionsX*i+j].setPreferredSize(paperSize);
+				System.out.print("\t" + (drawingRegionsY*i+j));
+				horParGroup.addComponent(paperView[drawingRegionsY*i+j]);
+			}
+			horSeqGroup.addGroup(horParGroup);
+			System.out.println();
 		}
-		groupLayout.setHorizontalGroup(horGroup);
-		groupLayout.setVerticalGroup(verGroup);
-		//paperPanel.setPreferredSize(new Dimension(4*paperSize.width, 2*paperSize.height));
+		groupLayout.setHorizontalGroup(horSeqGroup);
 		
-		/*GroupLayout gl = new GroupLayout(new JPanel());
-		JLabel label = new JLabel("test");
-		JTextField textField = new JTextField();
-		JCheckBox caseCheckBox = new JCheckBox();
-		JCheckBox wholeCheckBox = new JCheckBox();
-		JCheckBox wrapCheckBox = new JCheckBox();
-		JCheckBox backCheckBox = new JCheckBox();
-		JButton findButton = new JButton("test find");
-		JButton cancelButton = new JButton("test cancel");
-		
-		gl.setHorizontalGroup(gl.createSequentialGroup()
-			    .addComponent(label)
-			    .addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
-			        .addComponent(textField)
-			        .addGroup(gl.createSequentialGroup()
-			            .addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
-			                .addComponent(caseCheckBox)
-			                .addComponent(wholeCheckBox))
-			            .addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
-			                .addComponent(wrapCheckBox)
-			                .addComponent(backCheckBox))))
-			    .addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
-			        .addComponent(findButton)
-			        .addComponent(cancelButton))
-			);
-		
-		gl.setVerticalGroup(gl.createSequentialGroup()
-			    .addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
-			        .addComponent(label)
-			        .addComponent(textField)
-			        .addComponent(findButton))
-			    .addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
-			        .addGroup(gl.createSequentialGroup()
-			            .addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
-			                .addComponent(caseCheckBox)
-			                .addComponent(wrapCheckBox))
-			            .addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
-			                .addComponent(wholeCheckBox)
-			                .addComponent(backCheckBox)))
-			        .addComponent(cancelButton))
-			);
-		*/
-		
-		
-		
+		System.out.println();
 
-		/* *******   up left (title, settings)   ************/
-
-		JPanel upleftPanel = new JPanel();
-		upleftPanel.setLayout(new BorderLayout());
-		upleftPanel.add(titlePanel, BorderLayout.NORTH);
-		upleftPanel.add(settingsPanel, BorderLayout.CENTER);
+		for (int i=0; i<drawingRegionsY; i++) {
+			ParallelGroup verParGroup = groupLayout.createParallelGroup();
+			for (int j=0; j<drawingRegionsX; j++) {
+				System.out.print("\t" + (drawingRegionsY*j+i));
+				verParGroup.addComponent(paperView[drawingRegionsY*j+i]);
+			}
+			verSeqGroup.addGroup(verParGroup);
+			System.out.println();
+		}		
+		groupLayout.setVerticalGroup(verSeqGroup);
 		
-		/* *******   up (title, settings, tutor)   ************/
-
-		JPanel upPanel = new JPanel();
-		upPanel.setLayout(new BorderLayout());
-		upPanel.add(upleftPanel, BorderLayout.WEST);
-		upPanel.add(tutor, BorderLayout.CENTER);
-		//upPanel.setPreferredSize(new Dimension((int)(screenSize.width/2),100));
-
-		/* *******   papers   ************/
+		System.out.println();
 		
-
-		//JPanel mainPanel = new JPanel();
-		//mainPanel.add(paperPanel);
+		//paperPanel.setSize(new Dimension((int)(paperSize.getWidth()*drawingRegionsX),(int)(paperSize.getHeight()*drawingRegionsY)));
+		paperPanel.setBorder(BorderFactory.createBevelBorder(0, Color.BLUE, Color.YELLOW));
+		
 		
 		/* *******   all   ************/
 				
 		JPanel allPanel = new JPanel();
 		allPanel.setLayout(new BorderLayout());
-		allPanel.add(upPanel, BorderLayout.NORTH);
+		allPanel.add(leftPanel, BorderLayout.WEST);
 		allPanel.add(paperPanel, BorderLayout.CENTER);
-		allPanel.add(nextPanel, BorderLayout.EAST);
-		//allPanel.setPreferredSize(new Dimension((int)(screenSize.width/2), (int)(screenSize.height/2)));		
 		this.getContentPane().add(allPanel);
-		setLocation((int)(screenSize.width/10), (int)(screenSize.height/10));
 		
 		
 		addWindowListener(new WindowAdapter() {
@@ -337,8 +278,8 @@ public class CalligraphView extends JFrame implements ActionListener {
 			computations.setThresholds("./LitereModel/thresholds/th" + simboluri[topicIndex] + ".txt");
 			String answer = "";
 			synchronized (Tutor.obj) {
-				for (int i=0; i<drawingRegionsNo; i++) {
-					if (paperView[i].getSymbol() != null) {
+				for (int i=0; i<drawingRegionsX*drawingRegionsY; i++) {
+					if (paperView[i].getSymbol() != null && paperView[i].getSymbol().getPoints().size() > 0) {
 						System.out.println("[CalligraphView] save " + i);
 						answer += "letter " + i + ": ";
 						
@@ -381,7 +322,8 @@ public class CalligraphView extends JFrame implements ActionListener {
 	}
 	
 	public void reset() {
-		for (int i=0; i<drawingRegionsNo; i++) {
+		//topicPaper.reset();
+		for (int i=0; i<drawingRegionsX*drawingRegionsY; i++) {
 			paperView[i].reset();
 		}
 		if (timer != null)
@@ -402,7 +344,7 @@ public class CalligraphView extends JFrame implements ActionListener {
 
 	public void setTopicIndex(int topicIndex) {
 		this.topicIndex = topicIndex;
-		topicLabel.setText("Nivelul " + topicIndex + " - Litera " + simboluri[topicIndex]);
+		//topicLabel.setText("Nivelul " + topicIndex + " - Litera " + simboluri[topicIndex]);
 	}
 
 	public CalligraphComputations getComputations() {
@@ -418,13 +360,30 @@ public class CalligraphView extends JFrame implements ActionListener {
 	}
 	
 	public void restarttimer() {
-		timer.restart();
+		if (timer !=null)
+			timer.restart();
 	}
 
 	public Paper getPaper(int i) {
 		return paperView[i];
 	}
-	
+
+	public String getFilename() {
+		return filename;
+	}
+
+	public void setFilename(String filename) {
+		this.filename = filename;
+		topicPaper.drawCharacter(filename);
+	}
+
+	public Paper getTopicPaper() {
+		return topicPaper;
+	}
+
+	public void setTopicPaper(Paper topicPaper) {
+		this.topicPaper = topicPaper;
+	}
 }
 
 

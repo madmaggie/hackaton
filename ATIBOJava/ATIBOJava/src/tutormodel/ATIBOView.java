@@ -90,11 +90,11 @@ public class ATIBOView extends JFrame implements ActionListener {
 					view = new CalligraphView(this);
 				}
 				else {
-					synchronized (Tutor.obj) {
+					//synchronized (Tutor.obj) {
 						view.setVisible(true);
 						view.restarttimer();
 						//Tutor.obj.notify();
-					}
+					//}
 				}
 				setVisible(false);
 				Tutor.obj.notify();

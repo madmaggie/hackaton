@@ -150,6 +150,7 @@ public class Tutor implements Runnable {
 				course = new CalligraphyCourse();
 				crtTopic = 0;
 				mainView.getView().setTopicIndex(crtTopic);
+				mainView.getView().setFilename(((Character) course.getTopic(crtTopic)).getCoordinatesFilename());
 				System.out.println("[Tutor] student = " + student);
 				mainView.getView().setStudent(student);
 			}
@@ -161,7 +162,7 @@ public class Tutor implements Runnable {
 	private void teachTopic() {
 		System.out.println("[Tutor] Uite cum se face " + course.getTopic(crtTopic).getTopicName());
 		if (mainView.getCourseType() == Course.CALLIGRAPHY) {
-			mainView.getView().getPaper(0).drawCharacter(((Character) course.getTopic(crtTopic)).getCoordinatesFilename());
+			//mainView.getView().getPaper(0).drawCharacter(((Character) course.getTopic(crtTopic)).getCoordinatesFilename());
 		}
 		
 	}
@@ -281,7 +282,9 @@ public class Tutor implements Runnable {
 				// set current topic - in CaligraphCourse and CalligraphView
 				crtTopic++;
 				mainView.getView().setTopicIndex(crtTopic);
+				mainView.getView().getTopicPaper().reset();
 				mainView.getView().reset();
+				mainView.getView().setFilename(((Character) course.getTopic(crtTopic)).getCoordinatesFilename());
 				teachTopic();
 				break;
 			}

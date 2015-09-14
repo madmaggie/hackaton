@@ -1,18 +1,12 @@
 package tutormodel;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
 import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 // the visual representation of the tutor
@@ -34,6 +28,15 @@ public class VisualTutor extends JPanel {
 	
 	@Override
 	public Dimension getPreferredSize() {
+		 if (image == null) {
+             return new Dimension(100,100);
+        } else {
+           return new Dimension(image.getWidth(null), image.getHeight(null));
+       }
+	}
+
+	@Override
+	public Dimension getSize() {
 		 if (image == null) {
              return new Dimension(100,100);
         } else {

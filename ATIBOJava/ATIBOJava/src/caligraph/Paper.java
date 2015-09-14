@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -44,8 +45,8 @@ public class Paper extends JPanel {
 	private Symbol symbol;
 	private double gridHeight;
 	private double gridWidth;
-	private double paperHeight;
-	private double paperWidth;
+	private double gridAngle;
+		
 	private int horizontalLinesNo;
 	private int verticalLinesNo;
 	private int tipCaiet;
@@ -62,44 +63,69 @@ public class Paper extends JPanel {
 		
 	public Paper(CalligraphView parentView, Symbol symbol, Dimension paperSize, int tipCaiet, int penThick) {
 		this.parentView = parentView;
-		this.symbol = symbol;
-		System.out.println("[Paper] " + this.symbol);
-		this.gridHeight = symbol.getGridHeight();
-		this.gridWidth = symbol.getGridWidth();
-		this.paperHeight = paperSize.getHeight();
-		this.paperWidth = paperSize.getWidth();
-		horizontalLinesNo = (int)(paperHeight/gridHeight);
-		// tip 1 sau mate
+		
+		this.setPreferredSize(paperSize);
+		this.setSize(paperSize);
+		
+		if (symbol != null) {
+			this.symbol = symbol;
+			this.gridHeight = symbol.getGridHeight();
+			this.gridWidth = symbol.getGridWidth();
+			this.gridAngle = symbol.getGridAngle();
+			crtShape = symbol.getShapes().size()-1;
+			crtPoint = -1;
+		}
+		else {
+			this.gridHeight = Symbol.DEFAULT_HEIGHT;
+			this.gridWidth = Symbol.DEFAULT_WIDTH;
+			this.gridAngle = Symbol.DEFAULT_ANGLE;
+			setEnabled(false);
+		}
+		
+		horizontalLinesNo = (int)(getHeight()/gridHeight);
+		
+		/*
+		 * this code deals with different types of notebooks:
+		 * tip 1 is the type of notebook where 1st grade children start learning the alphabet
+		 * it has continuous and dotted horizontal lines and oblique lines
+		 * tip 2 is the next type of notebook, used by 2nd grade children
+		 * it has continuous and dotted horizontal lines ( no oblique lines)
+		 * dictando is the type of notebook with only continuous horizontal lines
+		 * math is the type of notebook used in mathematics, with continuous horizontal and vertical lines
+		 * currently only tip 1 notebook is used */
+		// tip 1 or math
 		if (tipCaiet == 0 || tipCaiet == 3)
-			//verticalLinesNo = (int)((symbol.getGridHeight()/symbol.getGridWidth())*paperWidth/gridHeight)
-			// + (int)(gridHeight*Math.tan((90-symbol.getGridAngle())*Math.PI/180));
-			verticalLinesNo = (int)(paperWidth/gridWidth)
-							+ (int)(paperHeight*Math.tan((90-symbol.getGridAngle())*Math.PI/180));
-		// tip 2 sau dictando
+			verticalLinesNo = (int)(getWidth()/gridWidth)
+							+ (int)(getHeight()*Math.tan((90-gridAngle)*Math.PI/180));
+		// tip 2 or dictando
 		else
 			verticalLinesNo = 0;
+
+		//System.out.println("[Paper] horizontalLinesNo = " + horizontalLinesNo + " verticalLinesNo = " + verticalLinesNo);
+				
 		this.penThick = penThick;
 		
-		//crtShape = -1;
-		crtShape = symbol.getShapes().size()-1;
-		crtPoint = -1;
 
 		image = GraphicsEnvironment.getLocalGraphicsEnvironment().
 			    getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(
-			    		(int)paperWidth, (int)paperHeight);
+			    		(int)getWidth(), (int)getHeight());
 		g = (Graphics2D)image.getGraphics();
 		
 		image.setAccelerationPriority(1);
 		
 		createImage();
-		build();
+		
+		if (symbol != null)
+			build();
+		
+		setBorder(BorderFactory.createBevelBorder(0, Color.RED, Color.GREEN));
 		
 	}
 	
 	public void createImage() {
 
 		g.setColor(Color.WHITE);
-		g.fillRect(0, 0, (int)paperWidth, (int)paperHeight);
+		g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
 		g.setColor(Color.BLACK);
 		
 		Stroke continuousStroke = new BasicStroke(1);
@@ -117,16 +143,16 @@ public class Paper extends JPanel {
 			}
 			else
 				g.setStroke(continuousStroke);
-			g.drawLine(0, (int)(i*gridHeight+OFFSET), (int)paperWidth, (int)(i*gridHeight+OFFSET));
+			g.drawLine(0, (int)(i*gridHeight+OFFSET), (int)getWidth(), (int)(i*gridHeight+OFFSET));
 		}
 		g.setStroke(continuousStroke);
 		for (int i=0; i<verticalLinesNo; i++) {
 			if (tipCaiet == 0)
 				g.drawLine((int)(i*gridWidth+OFFSET), 0, 0,
-					(int)((i*gridWidth+OFFSET)/Math.tan((90-symbol.getGridAngle())*Math.PI/180)));
+					(int)((i*gridWidth+OFFSET)/Math.tan((90-gridAngle)*Math.PI/180)));
 			else
 				if (tipCaiet == 3)
-					g.drawLine((int)(i*gridWidth+OFFSET), 0, (int)(i*gridWidth+OFFSET), (int)paperHeight);
+					g.drawLine((int)(i*gridWidth+OFFSET), 0, (int)(i*gridWidth+OFFSET), (int)getHeight());
 		}
 		
 		
@@ -136,7 +162,7 @@ public class Paper extends JPanel {
 		g.setColor(Color.RED);
 		Image pencilImage = null;
 		try {
-			pencilImage = ImageIO.read(new File("img/pencil.jpg"));
+			pencilImage = ImageIO.read(new File("img/pencil.png"));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -338,9 +364,11 @@ public class Paper extends JPanel {
 	}
 
 	public void reset() {
-		symbol = new Symbol();
-		crtShape = symbol.getShapes().size()-1;
-		crtPoint = -1;
+		if (symbol != null) {
+			symbol = new Symbol();
+			crtShape = symbol.getShapes().size()-1;
+			crtPoint = -1;
+		}		
 		createImage();
 		repaint();
 	}
@@ -383,22 +411,6 @@ public class Paper extends JPanel {
 
 	public void setGridWidth(double gridWidth) {
 		this.gridWidth = gridWidth;
-	}
-
-	public double getPaperHeight() {
-		return paperHeight;
-	}
-
-	public void setPaperHeight(double paperHeight) {
-		this.paperHeight = paperHeight;
-	}
-
-	public double getPaperWidth() {
-		return paperWidth;
-	}
-
-	public void setPaperWidth(double paperWidth) {
-		this.paperWidth = paperWidth;
 	}
 
 	public int getHorizontalLinesNo() {
