@@ -10,30 +10,85 @@ Unpacking objects: 100% (3/3), done.
 Checking connectivity... done.
 
 
-deci ok, nu m-am prins ce face --git-dir ca tot in directorul curent a clonat..
+deci ok, dar nu m-am prins ce face --git-dir ca tot in directorul curent a clonat..
 
 
-micky@plimbaricison:~$ git checkout master
-fatal: Not a git repository (or any of the parent directories): .git
+micky@plimbaricison:~$ git checkout master (aici mi-a dat eroare, m-am prins mai tarziu k nu eram in alt folder :D)
+are sens sa dau ckheckout imediat dupa clone? dupa clone aveam deja local ce era si remote
 
 
-ce ar tb sa faca comanda asta?
-am gasit un ghid frumos: http://rogerdudler.github.io/git-guide/
-inteleg ca dc fac fork la un alt branch, ma intorc la branch-ul default (master) cu comanda asta
-acuma la inceput, cand repo e gol, ce ar tb sa faca?
+usefull (for me at least:D):
+
+--------------------------------------
+
+links
+
+http://rogerdudler.github.io/git-guide/
+http://ndpsoftware.com/git-cheatsheet.html#loc=remote_repo;
 
 
-anyways, yo as vrea sa lucrez in eclipse, am adaugat aici prj si incerc sa vad cum merge, de aia scriu aici, sa vad dc apar modificarile pe site
+--------------------------------------
 
-a, si yo dc il fac proiect eclipse, o sa imi apara 2 fisiere, .project si .classpath, ar tb sa NU dau commit la fisierele astea?
-
-mi-am mai amintit de un link interesant: http://ndpsoftware.com/git-cheatsheet.html
+Remove directory from git and local
 
 
-am incercat push, a zis ok, dar nu vad nimic modificat pe site. mai modific fisieru asta k sa pot da commit&push (dc nu-i modificat nu-mi apare in lista de commit)
+git rm -r one-of-the-directories
+git commit -m "Remove duplicated directory"
+git push origin master
 
-off, iar tb sa modific
 
-nu vrea sa comita, zice no changes.. cum no changes dc yo scriu de zor aici??
+
+Remove directory from git but NOT local
+
+git rm -r --cached myFolderone-of-the-directories
+git commit -m "Remove duplicated directory"
+git push origin master
+
+
+sau dc am sters manual un fisier/folder local  si vreau sa aplic modificarea si remote:
+
+git add --all .
+git commit -m "Remove duplicated directory"
+git push origin master
+
+--all -> pt k altfel ignora ce e sters (default behaviour este ceva gen --ignore-removed)
+(ceva de genu asta mi-a explicat git knd am dat "git add .", dar nu mai am explicatia exacta)
+
+
+
+--------------------------------------
+
+git status -> track modifications
+
+
+
+--------------------------------------
+
+(asta l-am pus aici k e alt msg de la git - cum a fost si cel pt --all,
+ si dc pe ala nu-l mai am, am zis macar asta sa-l pastrez:D)
+
+micky@plimbaricison:/media/micky/WORK/GIT-REPOSITORY/hackaton$ git push
+warning: push.default is unset; its implicit value is changing in
+Git 2.0 from 'matching' to 'simple'. To squelch this message
+and maintain the current behavior after the default changes, use:
+
+  git config --global push.default matching
+
+To squelch this message and adopt the new behavior now, use:
+
+  git config --global push.default simple
+
+When push.default is set to 'matching', git will push local branches
+to the remote branches that already exist with the same name.
+
+In Git 2.0, Git will default to the more conservative 'simple'
+behavior, which only pushes the current branch to the corresponding
+remote branch that 'git pull' uses to update the current branch.
+
+See 'git help config' and search for 'push.default' for further information.
+(the 'simple' mode was introduced in Git 1.7.11. Use the similar mode
+'current' instead of 'simple' if you sometimes use older versions of Git)
+
+
 
 *********************   end micky   ********************************************** 
