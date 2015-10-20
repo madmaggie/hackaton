@@ -91,4 +91,13 @@ See 'git help config' and search for 'push.default' for further information.
 
 
 
+--------------------------------------------------------------------
+
+
+cand dau commit am 2 campuri editabile unde completez autorul si acolo nu stiu de ce
+by default este atibo. dc nu modific, apare k atibo a facut modificarile.
+
+nevertheless, nu ar tb sa conteze asta, este doar un text editabil. atibo nu cred k are cont de github
+iar cand fac push ma loghez cu mikalex
+
 *********************   end micky   ********************************************** 
