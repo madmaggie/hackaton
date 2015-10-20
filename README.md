@@ -29,4 +29,11 @@ a, si yo dc il fac proiect eclipse, o sa imi apara 2 fisiere, .project si .class
 
 mi-am mai amintit de un link interesant: http://ndpsoftware.com/git-cheatsheet.html
 
+
+am incercat push, a zis ok, dar nu vad nimic modificat pe site. mai modific fisieru asta k sa pot da commit&push (dc nu-i modificat nu-mi apare in lista de commit)
+
+off, iar tb sa modific
+
+nu vrea sa comita, zice no changes.. cum no changes dc yo scriu de zor aici??
+
 *********************   end micky   ********************************************** 
